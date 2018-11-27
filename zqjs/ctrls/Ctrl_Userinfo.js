@@ -9,48 +9,31 @@ angular.module('starter.controllers').controller('UserinfoCtrl', ['$rootScope', 
                 "password": password
             });
 
-            DM.datas.notify = [];
-            var login_success = false;
-            var login_connect_trade_front = false;
+            DM.datas.notify = {};
 
             var stopTimeout = $timeout(function(){
-                if(DM.datas.notify.length === 0){
+                if (!DM.datas.trade || !DM.datas.trade[user_name] || !DM.datas.trade[user_name].session){
                     $ionicLoading.hide().then(function() {
                         $rootScope.login_data.state = 'none';
-                        $rootScope.login_error = true;
-                        $rootScope.login_error_msg = '等待回应超时，可能的原因 (1)服务器正在运维，(2)网络不通，无法连接服务器，请稍后/检查网络后重试。';
+                        $rootScope.login_data.error_msg = '等待回应超时，可能的原因 (1)服务器正在运维，(2)网络不通，无法连接服务器，请稍后/检查网络后重试。';
                     });
                 }
                 $timeout.cancel(stopTimeout);
             }, 10000);
 
             var stop = $interval(function() {
-                for(var n in DM.datas.notify){
-                    var notify = DM.datas.notify[n];
-                    if(notify.content === '已经连接到交易前置' && !login_connect_trade_front){
-                        login_connect_trade_front = true;
-                    } else if(notify.content === '登录成功' && !login_success) {
-                        login_success = true;
-                    }
-                }
-                if( DM.datas.notify.length >= 2 && login_connect_trade_front && login_success) {
+                if (DM.datas.trade && DM.datas.trade[user_name] && DM.datas.trade[user_name].session
+                    && DM.datas.trade[user_name].session.user_id == user_name
+                ){
                     DM.update_data({
                         account_id: user_name
-                    })
+                    });
                     $interval.cancel(stop);
                     $ionicLoading.hide().then(function() {
                         $rootScope.login_data.state = 'success';
-                        $rootScope.login_error = false;
-                        $rootScope.login_error_msg = "";
+                        $rootScope.login_data.error_msg = '';
                     });
-                    // $ionicHistory.goBack();
-                } else if( DM.datas.notify.length >= 2 ) {
-                    $ionicLoading.hide().then(function() {
-                        $rootScope.login_data.state = 'none';
-                        $rootScope.login_error = true;
-                        $rootScope.login_error_msg = login_connect_trade_front ? '登录失败，请检查密码。' : '连接交易前置失败，请检查网络。';
-                    });
-                    $interval.cancel(stop);
+                    $timeout.cancel(stopTimeout);
                 }
             }, 100);
         }
@@ -65,20 +48,17 @@ angular.module('starter.controllers').controller('UserinfoCtrl', ['$rootScope', 
                 var password = $rootScope.login_data.password;
                 if (bid == undefined) {
                     $ionicLoading.hide().then(function() {
-                        $rootScope.login_error = true;
-                        $rootScope.login_error_msg = "请选择期货公司";
+                        $rootScope.login_data.error_msg = "请选择期货公司";
                     });
                     return;
                 } else if (user_name == undefined) {
                     $ionicLoading.hide().then(function() {
-                        $rootScope.login_error = true;
-                        $rootScope.login_error_msg = "请输入期货账号";
+                        $rootScope.login_data.error_msg  = "请输入期货账号";
                     });
                     return;
                 } else if (password == undefined) {
                     $ionicLoading.hide().then(function() {
-                        $rootScope.login_error = true;
-                        $rootScope.login_error_msg = "请输入密码";
+                        $rootScope.login_data.error_msg = "请输入密码";
                     });
                     return;
                 }

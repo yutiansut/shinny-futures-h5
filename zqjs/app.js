@@ -8,20 +8,9 @@ angular.module('starter', ['ionic', 'starter.controllers', 'numericKeyboard'])
             // 全局设置 angularui-router . state
             $rootScope.$state = $state;
 
-            $rootScope.ins_list_types = [
-                {id: 'main', name: '主力合约'},
-                {id: 'custom', name: '自选合约'},
-                {id: 'SHFE', name: '上期所'},
-                {id: 'CZCE', name: '郑商所'},
-                {id: 'INE', name: '上期能源'},
-                {id: 'DCE', name: '大商所'},
-                {id: 'CFFEX', name: '中金所'},
-            ];
+            $rootScope.ins_list_types = CONST.inslist_types;
 
-            $rootScope.insList = {
-                id: 'main',
-                title: '主力合约'
-            };
+            $rootScope.insList = CONST.default_inslist_type;
 
             /**
              * 登录参数
@@ -34,7 +23,8 @@ angular.module('starter', ['ionic', 'starter.controllers', 'numericKeyboard'])
             $rootScope.login_data = {
                 state: 'none', //登录状态
                 bid: SETTING.default_bid ? SETTING.default_bid : 'S上期技术',
-                user_name: '022631'
+                user_name: '022631',
+                error_msg: ''
             };
             $rootScope.login_data.user_name = localStorage.getItem('user_name') ? localStorage.getItem('user_name') : '';
             $rootScope.login_data.bid = localStorage.getItem('bid') ? localStorage.getItem('bid') : $rootScope.login_data.bid;

@@ -3053,7 +3053,7 @@ html {
   -moz-user-select: none;
   -ms-user-select: none;
   user-select: none;
-  font-family: sans-serif;
+  font-family: "Helvetica Neue", monospace, sans-serif;
   /* 1 */
   -webkit-text-size-adjust: 100%;
   -ms-text-size-adjust: 100%;
@@ -9213,6 +9213,16 @@ a.button {
   flex: 0 0 10%;
   max-width: 10%; }
 
+.col-23{
+  -webkit-box-flex: 0;
+  -webkit-flex: 0 0 23.3333%;
+  -moz-box-flex: 0;
+  -moz-flex: 0 0 23.3333%;
+  -ms-flex: 0 0 23.3333%;
+  flex: 0 0 23.3333%;
+  max-width: 23.3333%;
+}
+
 .col-20 {
   -webkit-box-flex: 0;
   -webkit-flex: 0 0 20%;
@@ -10038,7 +10048,7 @@ a.button {
   position: absolute;
   font-size: smaller;
   top: 30px;
-  height: 260px;
+  /* height: 260px; */
   width: 100%;
   padding: 2px 0px; }
   .posdetail .chart.container .chart-container:not(':first-child') {
@@ -10046,7 +10056,8 @@ a.button {
 
 .posdetail .panel.button-bar {
   position: absolute;
-  top: 290px; }
+  /*  top: 290px; */
+}
   .posdetail .panel.button-bar .button {
     color: #ccc;
     font-size: 14px;
@@ -10063,7 +10074,7 @@ a.button {
 
 .posdetail .panel-container {
   font-size: smaller;
-  margin: 12px 0px;
+  margin: 6px 0px;
   width: 100%; }
   .posdetail .panel-container.flex {
     display: flex;
@@ -10138,10 +10149,12 @@ a.button {
   .posdetail .col:nth-child(even) {
     font-weight: bold;
     color: #fff;
-    padding: 0px 14px 0px 0px;
+    padding: 0px 10px 0px 0px;
     text-align: right; }
+  .posdetail .R,
   .posdetail .col.R {
     color: #f00; }
+  .posdetail .G,
   .posdetail .col.G {
     color: #0f0; }
 

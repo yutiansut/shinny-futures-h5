@@ -84,8 +84,9 @@ function get_panels_content(insid, fixed) {
 
 function draw_page_posdetail_chart() {
     var chart_container = document.querySelector('div.chart.container');
+    var height = DIVISIONS.innerHeight - 280;
+    chart_container.style.height = height + 'px';            
     var width = chart_container.clientWidth;
-    var height = chart_container.clientHeight;
 
     var chart_id = DM.get_data('state' + SEPERATOR + 'chart_id');
     var chart_interval = DM.get_data('state' + SEPERATOR + 'chart_interval');
@@ -292,19 +293,41 @@ function draw_page_posdetail_info() {
     if (DM.get_data("state" + SEPERATOR + "page") == "posdetail" && DM.get_data("state" + SEPERATOR + "subpage") == "info") {
         var insid = DM.get_data('state' + SEPERATOR + 'detail_ins_id');
         var quote = DM.get_data("quotes" + SEPERATOR + insid);
+        var price_fixed = InstrumentManager.data[insid].price_decs;
         for (var i = 0; i < CONST.pos_detail_quote.length; i++) {
             var param = CONST.pos_detail_quote[i];
-            var divs = document.querySelectorAll('.posdetail .panel-container .frame .' + param);
+            var divs = document.querySelectorAll('.posdetail .panel-container.info .' + param);
             for (var j = 0; j < divs.length; j++) {
                 var div = divs[j];
                 if (div && quote) {
                     var val = quote[param] == undefined ? '' : quote[param];
-                    if (param == 'last_price') {
-                        if (quote.last_price - quote.pre_close >= 0) {
+                    if (param == 'change_percent') {
+                        var changePercent = ((quote.last_price - quote.pre_settlement) / quote.pre_close * 100);
+                        val = isNaN(changePercent) ? '-' : changePercent.toFixed(2) + '%';
+                    } else if (param == 'change') {
+                        val = quote.last_price - quote.pre_settlement;
+                        val = isNaN(val) ? '-' : val.toFixed(price_fixed);
+                    } else if (param == 'day_increase') {
+                        val = quote.open_interest - quote.pre_open_interest;
+                    }
+                    if (param == 'last_price' || param == 'open' || param == 'change' || param == 'change_percent') {
+                        if (quote.last_price - quote.pre_settlement >= 0) {
                             div.className = addClassName(div.className, 'R');
                         } else {
                             div.className = addClassName(div.className, 'G');
                         }
+                    }
+                    if (['ask_price1',
+                        'bid_price1',
+                        'last_price',
+                        'highest',
+                        'lowest',
+                        'lower_limit',
+                        'upper_limit',
+                        'open',
+                        'pre_close',
+                        'pre_settlement'].indexOf(param) > -1) {
+                        val = typeof val === 'number' ? val.toFixed(price_fixed) : val;
                     }
                     div.innerText = val;
                 }
@@ -385,8 +408,7 @@ function draw_page_posdetail_discuss() { // 持仓
                     price_type: "LIMIT", // 报单类型
                     limit_price: price,
                     volume_condition: "ANY",
-                    time_condition: "GFD",
-                    hedge_flag: "SPECULATION"
+                    time_condition: "GFD"
                 }
 
                 if(close > 0){
@@ -587,28 +609,31 @@ function draw_page_posdetail_plan() { // 委托
             var dir_offset = (order.direction === 'BUY' ? '买' : '卖' ) + (order.offset === 'OPEN' ? '开' : '平');
             tds[2].innerText = dir_offset;
             tds[3].innerText = order.price_type === 'ANY' ? '市价' : order.limit_price;
-            tds[4].innerText = order.volume_left + '/' + orders[id].volume_orign;
-            tds[5].innerText = getFormatTime(orders[id].insert_date_time);
-            var a = tds[6].querySelector('a');
+            tds[4].innerText = order.volume_left;
+            tds[5].innerText = orders[id].volume_orign;
+            tds[6].innerText = getFormatTime(orders[id].insert_date_time);
+
             if(order.status === 'ALIVE' && order.volume_left > 0){
-                if(!a){
-                    a = document.createElement('a');
-                    a.className = 'button button-small button-outline button-light';
-                    a.innerText = '撤单';
-                    a.onclick = gen_cancel_order(order.order_id);
-                    tds[6].appendChild(a);
-                }
+                if(!tr.onclick) tr.onclick = gen_cancel_order(order);
+                tr.style.fontWeight = 'bold';
+                tr.style.color = '#FFFFFF';
             } else {
-                if(a){
-                    tds[6].innerText = '';
-                }
+                if(tr.onclick) tr.onclick = null;
+                tr.style.fontWeight = 'normal';
+                tr.style.color = '#BBBBBB';
             }
         }
 
-        function gen_cancel_order(id) {
+        function gen_cancel_order(order) {
+            var id = order.order_id
             return function () {
+                var msg = '确认删除挂单 ' + order.instrument_id + '@';
+                msg += order.limit_price;
+                msg += ' ';
+                msg += order.volume_left;
+                msg += ' 手?'
                 navigator.notification.confirm(
-                    '确认删除挂单?', // message
+                    msg,
                     function (buttonIndex) {
                         if (buttonIndex == 1) {
                             TR_WS.send({
@@ -640,6 +665,7 @@ function draw_page_posdetail_tools() { // 交易
     if (DM.get_data("state" + SEPERATOR + "page") == "posdetail" && DM.get_data("state" + SEPERATOR + "subpage") == "tools") {
         var insid = DM.get_data('state' + SEPERATOR + 'detail_ins_id');
         var quote = DM.get_data("quotes" + SEPERATOR + insid);
+        var price_fixed = InstrumentManager.data[insid].price_decs;
         for (var i = 0; i < CONST.pos_detail_quote_tools.length; i++) {
             var param = CONST.pos_detail_quote_tools[i];
             var divs = document.querySelectorAll('.posdetail .panel-container .frame .' + param);
@@ -648,11 +674,16 @@ function draw_page_posdetail_tools() { // 交易
                 if (div && quote) {
                     var val = quote[param] == undefined ? '' : quote[param];
                     if (param == 'last_price') {
-                        if (quote.last_price - quote.pre_close >= 0) {
+                        if (quote.last_price - quote.pre_settlement >= 0) {
                             div.className = addClassName(div.className, 'R');
                         } else {
                             div.className = addClassName(div.className, 'G');
                         }
+                    }
+                    if (['ask_price1',
+                        'bid_price1',
+                        'last_price'].indexOf(param) > -1) {
+                        val = typeof val === 'number' ? val.toFixed(price_fixed) : val;
                     }
                     div.innerText = val;
                 }

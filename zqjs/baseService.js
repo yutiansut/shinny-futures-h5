@@ -60,7 +60,7 @@ var InstrumentManager = (function () {
         for (var symbol in content_data) {
             var item = content_data[symbol];
 
-            if (item.expired || item.class === 'FUTURE_OPTION' || item.class === 'FUTURE_COMBINE') {
+            if (item.class === 'FUTURE_OPTION' || item.class === 'FUTURE_COMBINE') {
                 delete content_data[symbol];
                 continue;
             }
@@ -68,7 +68,7 @@ var InstrumentManager = (function () {
                 delete content_data[symbol];
                 continue;
             }
-            if (item.class === 'FUTURE' && ins_list[item.exchange_id]) {
+            if (!item.expired && item.class === 'FUTURE' && ins_list[item.exchange_id]) {
                 ins_list[item.exchange_id].push(symbol);
                 var product_id = content_data[symbol].product_id;
                 if (!content.map_product_id_future[product_id]) content.map_product_id_future[product_id] = [];
@@ -79,8 +79,9 @@ var InstrumentManager = (function () {
                     if (!content.map_py_future[py]) content.map_py_future[py] = [];
                     content.map_py_future[py].push(symbol);
                 }
-            } else if (item.class === 'FUTURE_CONT' || item.class === 'FUTURE_INDEX') {
-                ins_list['main'].push(symbol);
+            } else if (!item.expired && item.class === 'FUTURE_CONT' || item.class === 'FUTURE_INDEX') {
+                // 主力合约不显示 主力连续 和 指数
+                // ins_list['main'].push(symbol);
                 var match = symbol.match(/@(.*)\.(.*)/);
                 var ex = match[1];
                 var product_id = match[2];
@@ -93,7 +94,7 @@ var InstrumentManager = (function () {
                     // 为主连和指数修改 ins_id, 用于quotes 显示
                     content_data[symbol].ins_id = product_id + (content_data[symbol].class === 'FUTURE_CONT' ? '主连' : '指数');
                 }
-            } else if (item.class === 'INDEX' && ins_list[item.exchange_id]) {
+            } else if ( !item.expired && item.class === 'INDEX' && ins_list[item.exchange_id]) {
                 ins_list[item.exchange_id].push(symbol);
             } 
         }
@@ -172,13 +173,13 @@ var InstrumentManager = (function () {
                     endtime = ('' + (h - 24)).padStart(2, '0') + ':' + m;
                 }
                 trading_time_str += endtime;
-                trading_time_str += '\n';
+                trading_time_str += ',';
             }
             if (content_data[insid].trading_time && content_data[insid].trading_time.day) {
                 var day = content_data[insid].trading_time.day;
                 for (var i = 0; i < day.length; i++) {
                     trading_time_str += day[i][0].slice(0, 5) + '-' + day[i][1].slice(0, 5);
-                    trading_time_str += '\n';
+                    trading_time_str += i < day.length - 1 ? ',' : '';
                 }
             }
             insObj.trading_time = trading_time_str;

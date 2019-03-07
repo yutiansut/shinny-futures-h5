@@ -45,9 +45,18 @@ function draw_page_quote() {
             var tbody = document.querySelector('.qt_container table.qt tbody');
             window.onresize = function(){
                 DIVISIONS.innerHeight = window.innerHeight;
-                DIVISIONS["tbody"].dom.style.height = (DIVISIONS.innerHeight - 44 - 42 - 40) + 'px';
+                if (DIVISIONS.productIndexList.length > 0 || DIVISIONS.insType === 'custom') {
+                    DIVISIONS["tbody"].dom.style.height = (DIVISIONS.innerHeight - 44 - 42 - 33) + 'px';
+                } else {
+                    DIVISIONS["tbody"].dom.style.height = (DIVISIONS.innerHeight - 44 - 42) + 'px';
+                }
             }
-            tbody.style.height = (DIVISIONS.innerHeight - 44 - 42 - 40) + 'px';
+            if (DIVISIONS.productIndexList.length > 0 || DIVISIONS.insType === 'custom') {
+                tbody.style.height = (DIVISIONS.innerHeight - 44 - 42 - 33) + 'px';
+            } else {
+                tbody.style.height = (DIVISIONS.innerHeight - 44 - 42) + 'px';
+            }
+            
             tbody.onscroll = function(){
                 if (!DM.datas.state.is_scrolling)
                     DM.update_data({
@@ -125,14 +134,24 @@ function draw_page_quote_produces(){
     while (DIVISIONS.products.dom.firstChild) {
         DIVISIONS.products.dom.removeChild(DIVISIONS.products.dom.firstChild);
     }
-    for(var i=0 ; i<productIndexList.length; i++){
-        var name = InstrumentManager.data[productIndexList[i]].product_short_name;
-        var span = document.createElement('span');
-        span.innerText = name;
-        span.onclick = click_handler_scroll_to(productIndexList[i]);
-        DIVISIONS.products.dom.appendChild(span);
+    if (productIndexList.length > 0) {
+        for(var i=0 ; i<productIndexList.length; i++){
+            var name = InstrumentManager.data[productIndexList[i]].product_short_name;
+            var span = document.createElement('span');
+            span.innerText = name ? name : InstrumentManager.data[productIndexList[i]].ins_name;
+            span.onclick = click_handler_scroll_to(productIndexList[i]);
+            DIVISIONS.products.dom.appendChild(span);
+        }
+        DIVISIONS.tbody.dom.style.height = (DIVISIONS.innerHeight - 44 - 42 - 40) + 'px';;
+        DIVISIONS.products.dom.style.width = (50 * productIndexList.length) + 'px';
+        DIVISIONS.products.dom.style.height = '40px';
+    } else {
+        DIVISIONS.tbody.dom.style.height = 
+            DIVISIONS.insType === 'custom' ? (DIVISIONS.innerHeight - 44 - 42 - 33) + 'px' : (DIVISIONS.innerHeight - 44 - 42) + 'px';;
+        DIVISIONS.products.dom.style.width = '0px';
+        DIVISIONS.products.dom.style.height = '0px';
     }
-    DIVISIONS.products.dom.style.width = (50 * productIndexList.length) + 'px';
+    DIVISIONS.tbody.dom.nextElementSibling.hidden = DIVISIONS.insType === 'custom' ? false : true;
 }
 
 function click_handler_scroll_to(symbol){
@@ -219,10 +238,10 @@ function draw_page_quote_detail_symbol(symbol) {
             if (div && quote) {
                 var val = quote[k] == undefined ? '' : quote[k];
                 if (k == 'change_percent') {
-                    var changePercent = ((quote.last_price - quote.pre_close) / quote.pre_close * 100);
+                    var changePercent = ((quote.last_price - quote.pre_settlement) / quote.pre_close * 100);
                     val = isNaN(changePercent) ? '-' : changePercent.toFixed(2) + '%';
                 } else if (k == 'change') {
-                    val = quote.last_price - quote.pre_close;
+                    val = quote.last_price - quote.pre_settlement;
                     val = isNaN(val) ? '-' : val;
                 } else if (k == 'volume_multiple'){
                     val = InstrumentManager.data[symbol].volume_multiple;
@@ -234,7 +253,7 @@ function draw_page_quote_detail_symbol(symbol) {
                 }
                 div.setAttribute('data-content', val);
                 if (k == 'last_price' || k == 'change_percent' || k == 'change') {
-                    if (quote.last_price - quote.pre_close >= 0) {
+                    if (quote.last_price - quote.pre_settlement >= 0) {
                         div.className = addClassName(div.className, 'R');
                     } else {
                         div.className = addClassName(div.className, 'G');

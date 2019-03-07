@@ -28,9 +28,9 @@
         function showNotifications(notifications) {
             for(var k in notifications){
                 var noty = notifications[k];
-                if(noty.type === 'INFO'){
+                if(noty.level === 'INFO' && noty.type === 'MESSAGE'){
                     Toast.message(noty.content);
-                } else if(noty.type === 'WARNING' || noty.type === 'ERROR'){
+                } else if(noty.level === 'WARNING' || noty.level === 'ERROR'){
                     Toast.alert(noty.content);
                 }
             }
@@ -126,7 +126,12 @@
                 reconnectTimes = 0;
                 req_id = 0;
                 if(subscribe_quote) {ws.send(JSON.stringify(subscribe_quote))};
-                if(req_login) {ws.send(JSON.stringify(req_login))};
+                if(req_login) {
+                    ws.send(JSON.stringify(req_login));
+                    DM.update_data({
+                        account_id: user_name
+                    });
+                };
                 if (reconnectTask) {
                     clearInterval(reconnectTask);
                     reconnectTask = null;
